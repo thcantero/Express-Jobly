@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Testing
+coverage/
+
+# Environment variables
+.env
+.env.*
+
+# OS junk
+.DS_Store
+
+# Ignore personal config/editor folders
+.vscode/
+.idea/
