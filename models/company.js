@@ -49,15 +49,45 @@ class Company {
    * Returns [{ handle, name, description, numEmployees, logoUrl }, ...]
    * */
 
-  static async findAll() {
-    const companiesRes = await db.query(
+  static async findAll( filters = {}) {
+    let baseQuery = 
           `SELECT handle,
                   name,
                   description,
                   num_employees AS "numEmployees",
                   logo_url AS "logoUrl"
-           FROM companies
-           ORDER BY name`);
+           FROM companies`;
+
+    const whereParts = [];
+    const values = [];
+  
+    const {name, minEmployees, maxEmployees} = filters
+
+    //Filtering logic
+    if (name) {
+      values.push(`%${name}%`);
+      whereParts.push(`name ILIKE $${values.length}`);
+    }
+
+    if (minEmployees !== undefined) {
+      values.push(minEmployees);
+      whereParts.push(`num_employees >= $${values.length}`);
+    }
+
+    if (maxEmployees !== undefined) {
+      values.push(maxEmployees);
+      whereParts.push(`num_employees <= $${values.length}`);
+    }
+
+    //Add existing filters
+    if (whereParts.length > 0) {
+      baseQuery += " WHERE " + whereParts.join(" AND ");
+    }
+
+    baseQuery += " ORDER BY name"
+
+    const companiesRes = await db.query(baseQuery, values)
+
     return companiesRes.rows;
   }
 

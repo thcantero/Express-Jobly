@@ -52,8 +52,37 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
 
 router.get("/", async function (req, res, next) {
   try {
-    const companies = await Company.findAll();
+
+    // Validate allowed filters
+    const allowedFilters = ["name", "minEmployees", "maxEmployees"];
+    const invalidKeys = Object.keys(req.query).filter(
+      key => !allowedFilters.includes(key)
+    );
+    
+    if (invalidKeys.length) {
+      throw new BadRequestError(`Invalid filter keys: ${invalidKeys.join(", ")}`);
+    }
+    
+    const { name, minEmployees, maxEmployees } = req.query;
+
+    //Conver employee filtesrs to integers if provided
+    const min = minEmployees !== undefined ? parseInt(minEmployees, 10) : undefined;
+    const max = maxEmployees !== undefined ? parseInt(maxEmployees, 10) : undefined;
+
+    //Validation
+    if (min !== undefined && max !== undefined && min > max ) {
+      throw new BadRequestError("minEmployees can't be greater than maxEmployees");
+    }
+
+    //Pass filters to model
+    const companies = await Company.findAll({
+      name : name || undefined,
+      minEmployees : min,
+      maxEmployees : max
+    });
+
     return res.json({ companies });
+
   } catch (err) {
     return next(err);
   }
