@@ -147,7 +147,7 @@ class User {
       [username]
     );
 
-    
+    user.applications = applicationsRes.rows.map(r => r.job_id);
 
     return user;
   }

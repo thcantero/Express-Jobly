@@ -3,7 +3,7 @@
 
 const express = require("express");
 const { ensureAdmin } = require("../middleware/auth");
-const Job = require("../models/job");
+const Job = require("../models/jobs");
 const jsonschema = require("jsonschema");
 const jobNewSchema = require("../schemas/jobNew.json");
 const jobUpdateSchema = require("../schemas/jobUpdate.json");
@@ -18,6 +18,7 @@ router.post("/", ensureAdmin, async function (req, res, next) {
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);
     }
+    
     const job = await Job.create(req.body);
     return res.status(201).json({ job });
   } catch (err) {
@@ -27,17 +28,25 @@ router.post("/", ensureAdmin, async function (req, res, next) {
 
 router.get("/", async function (req, res, next) {
   try {
-    const jobs = await Job.findAll(req.query);
-    return res.json({ jobs });
-  } catch (err) {
-    return next(err);
-  }
-});
+    const { minSalary, hasEquity, title } = req.query;
+    
+    // Validate minSalary
+    if (minSalary && isNaN(Number(minSalary))) {
+      throw new BadRequestError("minSalary must be a number");
+    }
+    
+    // Validate hasEquity
+    if (hasEquity && !['true', 'false', true, false].includes(hasEquity)) {
+      throw new BadRequestError("hasEquity must be a boolean");
+    }
 
-router.get("/:id", async function (req, res, next) {
-  try {
-    const job = await Job.get(req.params.id);
-    return res.json({ job });
+    const jobs = await Job.findAll({
+      minSalary: minSalary ? Number(minSalary) : undefined,
+      hasEquity: hasEquity === 'true' || hasEquity === true,
+      title
+    });
+    
+    return res.json({ jobs });
   } catch (err) {
     return next(err);
   }

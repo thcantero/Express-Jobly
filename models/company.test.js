@@ -1,7 +1,7 @@
 "use strict";
 
 const db = require("../db.js");
-const Job = require("./jobs.js");
+const Job = require("./jobs");
 
 const { BadRequestError, NotFoundError } = require("../expressError");
 const Company = require("./company.js");

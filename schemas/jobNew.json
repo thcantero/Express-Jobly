@@ -1,0 +1,11 @@
+{
+  "type": "object",
+  "required": ["title", "companyHandle"],
+  "properties": {
+    "title": {"type": "string", "minLength": 1},
+    "salary": {"type": "number", "minimum": 0},
+    "equity": {"type": "number", "minimum": 0, "maximum": 1},
+    "companyHandle": {"type": "string", "minLength": 1}
+  },
+  "additionalProperties": false
+}
