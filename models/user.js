@@ -139,6 +139,16 @@ class User {
 
     if (!user) throw new NotFoundError(`No user: ${username}`);
 
+    // Get job applications
+    const applicationsRes = await db.query(
+      `SELECT job_id
+       FROM applications
+       WHERE username = $1`,
+      [username]
+    );
+
+    
+
     return user;
   }
 
@@ -203,6 +213,35 @@ class User {
     const user = result.rows[0];
 
     if (!user) throw new NotFoundError(`No user: ${username}`);
+  }
+
+  /** Apply for a job
+   * 
+   * Inserts an application record for username and jobId
+   * 
+   * Returns undefined
+   * 
+   * Throws NotFoundError if job doesn't exist
+   * Throws BadRequestError on duplicate application
+   */
+  static async applyForJob(username, jobId) {
+    try {
+      await db.query(
+        `INSERT INTO applications (username, job_id)
+         VALUES ($1, $2)`,
+        [username, jobId]
+      );
+    } catch (err) {
+      // Handle foreign key constraint (non-existent job)
+      if (err.code === '23503') {
+        throw new NotFoundError(`No job: ${jobId}`);
+      }
+      // Handle unique violation (duplicate application)
+      if (err.code === '23505') {
+        throw new BadRequestError(`Duplicate application for job: ${jobId}`);
+      }
+      throw err;
+    }
   }
 }
 
